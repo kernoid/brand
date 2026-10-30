@@ -1,7 +1,9 @@
 # kernoid – brand kit
 
-**kernoid** – one sovereign core for email, identity and storage. The name joins *kerno* (Esperanto: core, kernel)
-and *id* (identity); *-oid* nods to algebraic structures like the monoid – small, closed, composable.
+**kernoid** – one sovereign core for email, identity and storage. *Kern* is German for core, *kerno* is Esperanto
+for core; the name joins *kerno* and *id* (identity), and the wordmark shows both readings, **kerno.id** and
+**kern.id** (see Wordmark). As an aside, *-oid* nods to the monoid, *kern* to the kernel of a map – kernel and monoid
+make kernoid.
 
 Everything here is generated: edit `generate.py`, then run `python3 generate.py` (needs `rsvg-convert` from Homebrew
 `librsvg` and `fontTools`: `pip install fonttools`). It writes `svg/`, `png/`, `web/` and `apps/`.
