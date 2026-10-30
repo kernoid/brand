@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: MIT
-"""Generates the kernoid brand kit: master SVGs, PNG exports, favicon.ico and the website's head icons.
+"""Generates the kernoid brand kit: master SVGs, PNG exports, favicon.ico, the website's head icons and the apps' icons.
 
 The mark is >0<: two brackets point at a 0 with a dot in its middle. The 0 is the core and its orbit at once – the
 kernel of an injective map (ker f = {0}), ring 0 where a kernel runs; the dot is the core inside the core; the
@@ -24,7 +24,7 @@ from fontTools.pens.transformPen import TransformPen
 from fontTools.ttLib import TTFont
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SVG, PNG, WEB = (os.path.join(HERE, d) for d in ("svg", "png", "web"))
+SVG, PNG, WEB, APPS = (os.path.join(HERE, d) for d in ("svg", "png", "web", "apps"))
 
 NIGHT = "#0B0D10"       # near-black – backgrounds
 SHELL = "#D8FFFF"       # glitch white: violet + mint added as light (#9B8CFF + #3DDC97, clamped) – strokes, text on dark
@@ -111,6 +111,13 @@ def small_icon(bg=NIGHT):
     """16–48 px: the 0 alone on night, no glitch."""
     return svg("0 0 1024 1024", f'<rect width="1024" height="1024" rx="160" fill="{bg}"/>'
                + placed(small_zero(dot=True), 512, 512, 480, box=(40, 56)))
+
+
+def mac_icon(bg=NIGHT, small=False):
+    """macOS app icon: the body 824 px of 1024 with transparent margin, as Apple's icon grid has it; small sizes show
+    the 0 alone."""
+    body = placed(small_zero(dot=True), 512, 512, 390, box=(40, 56)) if small else placed(mark(uid="mac"), 512, 512, 700)
+    return svg("0 0 1024 1024", f'<rect x="100" y="100" width="824" height="824" rx="185" fill="{bg}"/>' + body)
 
 
 # --- wordmark (IBM Plex Mono Bold as outlines; baseline y=100, x-height 56) --------------------------------------------
@@ -244,26 +251,35 @@ def render(src, dst, w, h=None):
     subprocess.run(args, check=True)
 
 
-def ico(dst, pngs):
-    """favicon.ico with PNG entries (16, 32, 48)."""
+def ico(dst, pngs, sizes=(16, 32, 48)):
+    """An .ico with PNG entries – favicon.ico (16, 32, 48) and the Windows app icon."""
     data = [open(p, "rb").read() for p in pngs]
     out = struct.pack("<HHH", 0, 1, len(data))
     offset = 6 + 16 * len(data)
-    for s, d in zip((16, 32, 48), data):
-        out += struct.pack("<BBBBHHII", s, s, 0, 0, 1, 32, len(d), offset)
+    for s, d in zip(sizes, data):
+        out += struct.pack("<BBBBHHII", s % 256, s % 256, 0, 0, 1, 32, len(d), offset)
         offset += len(d)
     with open(dst, "wb") as f:
         f.write(out + b"".join(data))
 
 
+def no_alpha(path):
+    """The App Store refuses icons with an alpha channel; rsvg-convert writes RGB when nothing is transparent."""
+    with open(path, "rb") as f:
+        color = f.read(26)[25]
+    assert color == 2, f"{path}: alpha channel"
+
+
 def main():
-    for d in (SVG, PNG, WEB):
+    for d in (SVG, PNG, WEB, APPS):
         if os.path.isdir(d):
             shutil.rmtree(d)   # generated output only
     files = {
         "kernoid-icon.svg": icon(),
         "kernoid-icon-square.svg": icon(rounded=False),
         "kernoid-icon-small.svg": small_icon(),
+        "kernoid-icon-macos.svg": mac_icon(),
+        "kernoid-icon-macos-small.svg": mac_icon(small=True),
         "kernoid-mark-on-dark.svg": svg(MARK_BOX, mark(DARK)),
         "kernoid-mark-on-light.svg": svg(MARK_BOX, mark(LIGHT)),
         "kernoid-mark-black.svg": svg(MARK_BOX, flat_mark("#000000", "#000000")),
@@ -311,6 +327,24 @@ def main():
           '    {"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},\n'
           '    {"src": "/icon-512.png", "sizes": "512x512", "type": "image/png"}\n  ],\n'
           f'  "theme_color": "{NIGHT}",\n  "background_color": "{NIGHT}",\n  "display": "standalone"\n}}\n')
+
+    # The apps' icons, named and placed as the Flutter runners of kernoid/apps expect them (copied there)
+    for size in (16, 32, 64, 128, 256, 512, 1024):
+        render(s("kernoid-icon-macos-small.svg" if size <= 32 else "kernoid-icon-macos.svg"),
+               os.path.join(APPS, "macos", f"app_icon_{size}.png"), size)
+    for point, scales in (("20x20", (1, 2, 3)), ("29x29", (1, 2, 3)), ("40x40", (1, 2, 3)), ("60x60", (2, 3)),
+                          ("76x76", (1, 2)), ("83.5x83.5", (2,)), ("1024x1024", (1,))):
+        for k in scales:
+            dst = os.path.join(APPS, "ios", f"Icon-App-{point}@{k}x.png")
+            render(s("kernoid-icon-square.svg"), dst, round(float(point.split("x")[0]) * k))
+            no_alpha(dst)
+    for density, size in (("mdpi", 48), ("hdpi", 72), ("xhdpi", 96), ("xxhdpi", 144), ("xxxhdpi", 192)):
+        render(s("kernoid-icon.svg"), os.path.join(APPS, "android", f"mipmap-{density}", "ic_launcher.png"), size)
+    win = [os.path.join(PNG, "icon-small", f"kernoid-icon-small-{n}.png") for n in (16, 32, 48)]
+    render(s("kernoid-icon.svg"), os.path.join(APPS, "windows", "icon-256.png"), 256)
+    ico(os.path.join(APPS, "windows", "app_icon.ico"), win + [os.path.join(APPS, "windows", "icon-256.png")],
+        (16, 32, 48, 256))
+    os.remove(os.path.join(APPS, "windows", "icon-256.png"))
     print("brand kit written to", HERE)
 
 

@@ -4,7 +4,7 @@
 and *id* (identity); *-oid* nods to algebraic structures like the monoid – small, closed, composable.
 
 Everything here is generated: edit `generate.py`, then run `python3 generate.py` (needs `rsvg-convert` from Homebrew
-`librsvg` and `fontTools`: `pip install fonttools`). It writes `svg/`, `png/` and `web/`.
+`librsvg` and `fontTools`: `pip install fonttools`). It writes `svg/`, `png/`, `web/` and `apps/`.
 
 ## Marks
 
@@ -35,6 +35,7 @@ domains.
 |---|---|
 | GitHub org avatar | `png/social/github-avatar-500.png` |
 | GitHub social preview, link previews | `png/social/kernoid-social-1280x640.png` |
+| App icons (Flutter runners, see below) | `apps/` – macOS with Apple's margin (the 0 alone at 16 and 32 px), iOS full bleed without alpha, Android, Windows `.ico` |
 | Website `<head>` | `web/` – favicon.svg (follows light/dark), favicon.ico, apple-touch-icon.png, icon-192/512.png, site.webmanifest, social.png |
 | Headers, documents on dark / light | `svg/kernoid-lockup-on-dark.svg`, `-on-light.svg` (PNG: `png/lockup/`) |
 | Wordmark alone | `svg/kernoid-wordmark-on-dark.svg`, `-on-light.svg`; without glitch: `-flat-` |
@@ -101,13 +102,14 @@ copying from here, never edited there, and marked CC BY-ND 4.0 in their `REUSE.t
 | `kernoid/.github` | the lockups in `profile/assets/` |
 | `kernoid/kernoid` | `web/favicon.*` and the lockup on dark in `docs/assets/`; the favicon and icons in `web/app/public/` and `web/login/public/`, and there the flat wordmarks |
 | `kernoid/whitepaper` | the lockup on light in `template/assets/` |
+| `kernoid/apps` | `apps/` – each file to the same name in the Flutter runners: `macos/Runner/Assets.xcassets/AppIcon.appiconset/`, `ios/Runner/Assets.xcassets/AppIcon.appiconset/`, `android/app/src/main/res/`, `windows/runner/resources/` |
 
 ## Licences and rights
 
 | Files | Licence |
 |---|---|
 | `generate.py`, this README | [MIT](LICENSES/MIT.txt) |
-| the artwork: `svg/`, `png/`, `web/` | [CC BY-ND 4.0](LICENSES/CC-BY-ND-4.0.txt) |
+| the artwork: `svg/`, `png/`, `web/`, `apps/` | [CC BY-ND 4.0](LICENSES/CC-BY-ND-4.0.txt) |
 | `fonts/` | [SIL Open Font License 1.1](LICENSES/OFL-1.1.txt), Reserved Font Name “Plex”, used unmodified |
 
 The artwork may be copied and passed on – also in apps distributed through app stores and in other software – as it
